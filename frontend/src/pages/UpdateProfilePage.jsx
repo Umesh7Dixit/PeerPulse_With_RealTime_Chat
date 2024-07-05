@@ -34,10 +34,15 @@ export default function UpdateProfilePage() {
 
     const { handleImageChange, imgUrl } = usePreviewImg();
 
+    const [ updating , setUpdating ] = useState(false);
 
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if(updating)return;
+
+        setUpdating(true);
 
         try {
 
@@ -71,6 +76,8 @@ export default function UpdateProfilePage() {
             
         } catch (error) {
             showToast("Error",error,"error");
+        }finally{
+            setUpdating(false);
         }
 
     };
@@ -183,7 +190,7 @@ export default function UpdateProfilePage() {
             _hover={{
               bg: 'green.500',
             }}
-            type='submit'
+            type='submit' isLoading={updating}
             >
             Submit
           </Button>

@@ -1,10 +1,10 @@
 // redirect into home page after signup/login
-import { atom } from 'recoil';
+import { atom } from "recoil";
 
 const userAtom = atom({
-    key:'userAtom',
-    default: JSON.parse(localStorage.getItem('user-threads'))
-})
+	key: "userAtom",
+	default: JSON.parse(localStorage.getItem("user-threads")),
+});
 
 //3:50
 

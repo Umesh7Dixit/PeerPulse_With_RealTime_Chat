@@ -18,10 +18,11 @@ import {
 } from '@chakra-ui/react'
 import { useState } from 'react'
 import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons'
-import { useSetRecoilState } from 'recoil'
+import { useSetRecoilState } from "recoil";
 import authScreenAtom from '../atoms/authAtom'
 import useShowToast from '../hooks/useShowToast'
-import userAtom from '../atoms/userAtom'
+import userAtom from "../atoms/userAtom";
+
 
 export default function SignupCard() {
   const [showPassword, setShowPassword] = useState(false)
@@ -105,8 +106,8 @@ export default function SignupCard() {
                 </FormControl>
               </Box>
               <Box>
-                <FormControl id="lastName" isRequired >
-                  <FormLabel >username Name</FormLabel>
+                <FormControl isRequired >
+                  <FormLabel >Username</FormLabel>
                   <Input type="text" 
                   onChange={(e)=> setInputs({...inputs,username: e.target.value})}
                   value={inputs.username} />
@@ -151,7 +152,7 @@ export default function SignupCard() {
             </Stack>
             <Stack pt={6}>
               <Text align={'center'}>
-                Already a user? 
+                Already a user? {" "}
                 <Link color={'blue.400'}  onClick={()=>setAuthScreen("login")} >Login</Link>
               </Text>
             </Stack>
