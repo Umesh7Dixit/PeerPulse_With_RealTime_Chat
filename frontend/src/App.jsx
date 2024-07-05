@@ -12,6 +12,8 @@ import { useRecoilValue } from 'recoil';
 import userAtom from './atoms/userAtom';
 import LogoutButton from './components/LogoutButton';
 
+import CreatePost from './components/CreatePost';
+
 // "/:username" is dynamic route
 
 
@@ -24,7 +26,8 @@ function App() {
 
 
   return (
-    <Container  width={"650px"} >
+    // <Container  width={"650px"} >
+    <Container maxWidth="container.md">
         <Header/>
       <Routes>
 
@@ -41,6 +44,8 @@ function App() {
 
       {/* if user present then show logout button */}
       {user && <LogoutButton/>}
+
+      {user && <CreatePost/>}
 
     </Container>
   );

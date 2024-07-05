@@ -1,48 +1,56 @@
 import User from '../models/userModel.js';
 import Post from '../models/postModel.js';
 
+import { v2 as cloudinary } from 'cloudinary';
+
 const createPost = async (req, res) => {
 
     
     try {
         
-        const { postedBy, text, img } = req.body;
+        const { postedBy, text} = req.body;
+        let {img} = req.body; //seperate because img changes
 
 // checks
-        if(!postedBy || !text)
-            {
-                return res.status(400).json({ message: 'Post must contain a postedBy and text.' });
+        if(!postedBy || !text){
+                return res.status(400).json({ error: 'Post must contain a postedBy and text.' });
             }
 
         const user = await User.findById(postedBy);
 
         if(!user)
             {
-                return res.status(404).json({ message: 'User not found.' });
+                return res.status(404).json({ error: 'User not found.' });
             }
 
         if( user._id.toString() !== req.user._id.toString()){
-            return res.status(401).json({ message: 'You are not authorized to create a post.' });
+            return res.status(401).json({ error: 'You are not authorized to create a post.' });
         }
 
         const maxLength = 500;
 
         if(text.length > maxLength)
             {
-                return res.status(400).json({ message: `Text must be less than or equal to ${maxLength} characters.` });
+                return res.status(400).json({ error: `Text must be less than or equal to ${maxLength} characters.` });
             }
 
 // cratePost
+
+        if(img)
+        {
+			const uploadedResponse = await cloudinary.uploader.upload(img);
+			img = uploadedResponse.secure_url;
+        }
   
-        const newPost = new Post({ postedBy, text, img});
-        await newPost.save();
+		const newPost = new Post({ postedBy, text, img });
+		await newPost.save();
         
         res.status(201).json({ message: "Post created successfully",newPost});
 
         
     } catch (err) {
-        res.status(500).json({ message: err.message });
-        console.log(err.message);
+        res.status(500).json({ error: err.message });
+        console.log(err);
     }
 
 };
@@ -55,13 +63,13 @@ const getPost = async (req, res) => {
 
         if(!post)
             {
-                return res.status(404).json({ message: 'Post not found.' });
+                return res.status(404).json({ error: 'Post not found.' });
             }
 
         res.status(200).json({ post });
         
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ error: err.message });
     }
 
 };
@@ -72,13 +80,13 @@ const deletePost = async (req, res) => {
         const post = await Post.findById(req.params.id);
 
         if(!post){
-            return res.status(404).json({ message: 'Post not found.' });
+            return res.status(404).json({ error: 'Post not found.' });
         }
 
         // check real owner is deleted the post or other
 
         if(post.postedBy.toString()!== req.user._id.toString()){
-            return res.status(401).json({ message: 'You are not authorized to delete this post.' });
+            return res.status(401).json({ error: 'You are not authorized to delete this post.' });
         }
 
         await Post.findByIdAndDelete(req.params.id);
@@ -86,7 +94,7 @@ const deletePost = async (req, res) => {
         res.status(200).json({ message: 'Post deleted successfully.' });
         
     } catch (err) {
-        res.status(500).json({ message:"Post could not be deleted"}).json({ message: err});
+        res.status(500).json({ error:"Post could not be deleted"}).json({ message: err});
     }
 };
 
@@ -101,7 +109,7 @@ const likeUnlikePost = async (req, res) => {
 
         if(!post)
             {
-                return res.status(404).json({ message: "Post not Found" });
+                return res.status(404).json({ error: "Post not Found" });
             }
 
         // check if user like the post means it check userId on array of likes
@@ -122,7 +130,7 @@ const likeUnlikePost = async (req, res) => {
         }
         
     } catch (err) {
-        res.status(500).json({message: err.message });
+        res.status(500).json({error: err.message });
     }
 
 };
@@ -139,14 +147,14 @@ const replyToPost = async (req, res) => {
 
         if(!text)
             {
-                return res.status(400).json({ message: "Text field is required" });
+                return res.status(400).json({ error: "Text field is required" });
             }
 
         const post = await Post.findById(postId);
         
         if(!post)
             {
-               return res.status(404).json({ message: "Post not found" });
+               return res.status(404).json({ error: "Post not found" });
             }
 
         
@@ -159,7 +167,7 @@ const replyToPost = async (req, res) => {
 
         
     } catch (err) {
-        res.status(500).json({message:err.message});
+        res.status(500).json({error:err.message});
     }
 
 };
@@ -173,7 +181,7 @@ const getFeedPosts = async (req, res) => {
 
         if(!user)
             {
-                return res.status(404).json({ message: "User not found" });
+                return res.status(404).json({ error: "User not found" });
             }
 
         const following = user.following;
@@ -185,7 +193,7 @@ const getFeedPosts = async (req, res) => {
 
         
     } catch (err) {
-        res.status(500).json({message:err.message});
+        res.status(500).json({error:err.message});
     }
 }
 

@@ -27,9 +27,9 @@ cloudinary.config({
 
 // ____________________Middleware ________________
 
-app.use(express.json({ limit: '10mb' })); //it allows you to parse JSON data in the req.body  the incoming data from the request.body // or it parse JSON data in the req.body
-
-app.use(express.urlencoded({ limit: '10mb'  , extended:true})); //it allows you to parse data the incoming data from the request.body or to parse form data in the req.body
+app.use(express.json({ limit: '50mb' })); //it allows you to parse JSON data in the req.body  the incoming data from the request.body // or it parse JSON data in the req.body
+// when payload is too large like image i.e we increase the limit i.e 10mb
+app.use(express.urlencoded({ extended:true})); //it allows you to parse data the incoming data from the request.body or to parse form data in the req.body
 
 app.use(cookieParser()); //it allows you to get the cookies from the request.body and set the cookie inside the response
 // to access the cookie from both req and res so we use cookieParser()

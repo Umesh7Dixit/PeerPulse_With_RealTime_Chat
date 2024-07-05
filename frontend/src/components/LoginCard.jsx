@@ -35,8 +35,10 @@ export default function LoginCard() {
     password: "",
   });
 
-  const handlerLogin = async ()=> {
+  const [loading , setLoading] = useState(false);
 
+  const handlerLogin = async ()=> {
+    setLoading(true);
     try {
 
       const res = await fetch("/api/users/login",{
@@ -59,6 +61,8 @@ export default function LoginCard() {
       
     } catch (error) {
       showToast("Error", error,"error");
+    }finally{
+      setLoading(false);
     }
 
   }
@@ -117,7 +121,12 @@ export default function LoginCard() {
                 _hover={{
                   bg: useColorModeValue("gray.700","gray.800"),
                 }}
-                   onClick={handlerLogin}>
+                   onClick={handlerLogin}
+                   
+                   isLoading={loading}
+
+                   >
+
                 logIn
               </Button>
             </Stack>

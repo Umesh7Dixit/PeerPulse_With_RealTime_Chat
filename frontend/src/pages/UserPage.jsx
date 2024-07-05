@@ -3,6 +3,7 @@ import UserHeader from "../components/UserHeader"
 import UserPost from "../components/UserPost"
 import { useParams } from "react-router-dom";
 import useShowToast from '../hooks/useShowToast'
+import { Flex, Spinner } from "@chakra-ui/react";
 
 const UserPage = () => {
 
@@ -42,12 +43,20 @@ const UserPage = () => {
 
   // useEffect will run whenever the username changes
 
-  if (loading) {
-    return <div>Loading...</div>;
+  if (!user && loading) {
+    return (
+      <Flex justifyContent={'center'} >
+        <Spinner size='xl' />
+      </Flex>
+    )
   }
 
-  if (!user) {
-    return <div>User not found</div>;
+  if (!user && !loading) {
+    return (
+      <Flex justifyContent={'center'} >
+        <h1>User not found</h1>
+      </Flex>
+    )
   }
 
   return (
