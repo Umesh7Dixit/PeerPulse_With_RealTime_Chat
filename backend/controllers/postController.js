@@ -45,7 +45,7 @@ const createPost = async (req, res) => {
 		const newPost = new Post({ postedBy, text, img });
 		await newPost.save();
         
-        res.status(201).json({ message: "Post created successfully",newPost});
+        res.status(201).json(newPost);// message: "Post created successfully",
 
         
     } catch (err) {
@@ -66,7 +66,7 @@ const getPost = async (req, res) => {
                 return res.status(404).json({ error: 'Post not found.' });
             }
 
-        res.status(200).json({ post });
+        res.status(200).json( post );
         
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -87,6 +87,13 @@ const deletePost = async (req, res) => {
 
         if(post.postedBy.toString()!== req.user._id.toString()){
             return res.status(401).json({ error: 'You are not authorized to delete this post.' });
+        }
+
+        // if user contains image so need to delete image from cloudinary also
+
+        if(post.img){
+            const imgId = post.img.split("/").pop().split(".")[0];  //we get the id from cloudinary imageId(large id so we extract from this)
+            await cloudinary.uploader.destroy(imgId);
         }
 
         await Post.findByIdAndDelete(req.params.id);
@@ -163,7 +170,7 @@ const replyToPost = async (req, res) => {
         post.replies.push(reply);
         await post.save();
 
-        res.status(200).json({ message: "Reply added successfully", post });
+        res.status(200).json( reply ); //message: "Reply added successfully"
 
         
     } catch (err) {
@@ -172,7 +179,7 @@ const replyToPost = async (req, res) => {
 
 };
 
-const getFeedPosts = async (req, res) => {
+const getFeedPosts = async (req, res) => { //show all following posts
 
     try {
 
@@ -189,7 +196,7 @@ const getFeedPosts = async (req, res) => {
              //latest post at the top of the page
         const feedPosts = await Post.find({postedBy:{$in:following}}).sort({createAt: -1});
 
-        res.status(200).json({feedPosts});
+		res.status(200).json(feedPosts);
 
         
     } catch (err) {
@@ -198,5 +205,25 @@ const getFeedPosts = async (req, res) => {
 }
 
 
+const getUserPosts =  async (req, res) => {
 
-export { createPost, getPost, deletePost , likeUnlikePost , replyToPost, getFeedPosts };
+    const { username } = req.params;
+
+    try{
+        const user = await User.findOne({ username });
+        if(!user) {
+            return res.status(404).json({error: "User not found"});
+        }
+
+        const posts = await Post.find({postedBy: user._id}).sort({createAt: -1}); // sort means last post is gonna be first object
+
+        res.status(200).json(posts);
+        
+    }catch(error){
+        res.status(500).json({error: error.message});
+    }
+
+}
+
+
+export { createPost, getPost, deletePost , likeUnlikePost , replyToPost, getFeedPosts, getUserPosts };

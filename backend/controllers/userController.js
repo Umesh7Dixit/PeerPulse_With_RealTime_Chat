@@ -1,4 +1,5 @@
 import User from "../models/userModel.js";
+import Post from "../models/postModel.js";
 import bcrypt from "bcryptjs";
 import generateTokenAndSetCookie from "../utils/helpers/generateTokenAndSetCookie.js";
 import { v2 as cloudinary} from "cloudinary";
@@ -34,11 +35,11 @@ const getUserProfile = async (req, res) => {
 	try {
 		let user;
 
-		// query is userId
+		// if query valid is userId
 		if (mongoose.Types.ObjectId.isValid(query)) {
 			user = await User.findOne({ _id: query }).select("-password -updatedAt");
 		} else {
-			// query is username
+			//if query is username
 			user = await User.findOne({ username: query }).select("-password -updatedAt") ;
 		}
 
@@ -56,19 +57,107 @@ const getUserProfile = async (req, res) => {
 };
 
 
+// // ___________signUp User__________
+
+// const signupUser = async (req, res) => {
+//   try {
+//     const { name, email, username, password } = req.body; //we are able to parse these data by app.use(express.json()) middleware
+//     const user = await User.findOne({ $or: [{ email }, { username }] }); //we find if this username or email is already exist if exists then it sends the error that user already exists
+
+//     if (user) {
+//       res.status(400).json({ error: "User already exists" });
+//     }
+
+//     const salt = await bcrypt.genSalt(10); //10length random characters
+//     const hashedPassword = await bcrypt.hash(password, salt); //it add hashed password with sait
+
+//     const newUser = new User({
+//       name,
+//       email,
+//       username,
+//       password: hashedPassword,
+//     });
+
+//     await newUser.save(); //save new user on Database
+
+//     if (newUser) {
+//       const t = generateTokenAndSetCookie(newUser._id, res); //we setting/sending the cookies inside the cookies
+//       return res.status(201).json(
+//         {
+//           //201 means created
+//           _id: newUser._id,
+//           name: newUser.name,
+//           email: newUser.email,
+//           username: newUser.username,
+//           bio: newUser.bio,
+//           profilePic: newUser.profilePic
+           
+//           // token: generateToken(newUser._id) //generateToken is a function in auth.js file
+//         } );
+        
+//     } else {
+//         return res.status(400).json({ error: "User not created OR Invalid user data" });
+//     }
+
+//   } catch (err) {
+//     console.log("Error in SignUpUser", err.message);
+//     return res.status(500).json({ error: err.message });
+//   }
+// };
+
+// // ___________Login User__________
+
+// const loginUser = async (req,res) => {
+
+//   try {
+//     const { username, password } = req.body;
+    
+//     const user = await User.findOne({ username });
+
+//     if (!user) {
+//       res.status(400).json({ error: "User not found" });
+//     }
+//     //check if the password is correct
+//     const isMatch = await bcrypt.compare(password, user?.password || "");
+
+//     if(!isMatch||!user ) {
+//       return res.status(400).json({ error: "Invalid username OR password" });
+//     }
+
+//     generateTokenAndSetCookie(user._id, res);
+
+//     return res.status(200).json({
+//       _id: user._id,
+//       name: user.name,
+//       email: user.email,
+//       username: user.username,    
+//       bio: user.bio,
+//       profilePic: user.profilePic,
+//     });
+
+//   } catch (error) {
+//       res.status(500).json({ error: error.message });
+//       console.log("Error in LoginUser", error.message);  
+//   }
+
+// };
+
+
+
+
 // ___________signUp User__________
 
 const signupUser = async (req, res) => {
   try {
-    const { name, email, username, password } = req.body; //we are able to parse these data by app.use(express.json()) middleware
-    const user = await User.findOne({ $or: [{ email }, { username }] }); //we find if this username or email is already exist if exists then it sends the error that user already exists
+    const { name, email, username, password } = req.body;
+    const user = await User.findOne({ $or: [{ email }, { username }] });
 
     if (user) {
-      res.status(400).json({ error: "User already exists" });
+      return res.status(400).json({ error: "User already exists" });
     }
 
-    const salt = await bcrypt.genSalt(10); //10length random characters
-    const hashedPassword = await bcrypt.hash(password, salt); //it add hashed password with sait
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
     const newUser = new User({
       name,
@@ -77,50 +166,41 @@ const signupUser = async (req, res) => {
       password: hashedPassword,
     });
 
-    await newUser.save(); //save new user on Database
+    await newUser.save();
 
-    if (newUser) {
-      const t = generateTokenAndSetCookie(newUser._id, res); //we setting/sending the cookies inside the cookies
-      return res.status(201).json(
-        {
-          //201 means created
-          _id: newUser._id,
-          name: newUser.name,
-          email: newUser.email,
-          username: newUser.username,
-          bio: newUser.bio,
-          profilePic: newUser.profilePic
-           
-          // token: generateToken(newUser._id) //generateToken is a function in auth.js file
-        } );
-        
-    } else {
-        return res.status(400).json({ error: "User not created OR Invalid user data" });
-    }
+    generateTokenAndSetCookie(newUser._id, res);
+
+    return res.status(201).json({
+      _id: newUser._id,
+      name: newUser.name,
+      email: newUser.email,
+      username: newUser.username,
+      bio: newUser.bio,
+      profilePic: newUser.profilePic
+    });
 
   } catch (err) {
-    console.log("Error in SignUpUser", err.message);
+    console.error("Error in SignUpUser", err.message);
     return res.status(500).json({ error: err.message });
   }
 };
 
 // ___________Login User__________
 
-const loginUser = async (req,res) => {
-
+const loginUser = async (req, res) => {
   try {
     const { username, password } = req.body;
     
     const user = await User.findOne({ username });
 
     if (!user) {
-      res.status(400).json({ error: "User not found" });
+      return res.status(400).json({ error: "User not found" });
     }
-    //check if the password is correct
-    const isMatch = await bcrypt.compare(password, user?.password || "");
 
-    if(!isMatch||!user ) {
-      return res.status(400).json({ error: "Invalid username OR password" });
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(400).json({ error: "Invalid username or password" });
     }
 
     generateTokenAndSetCookie(user._id, res);
@@ -134,11 +214,10 @@ const loginUser = async (req,res) => {
       profilePic: user.profilePic,
     });
 
-  } catch (err) {
-      res.status(500).json({ error: err.message });
-      console.log("Error in LoginUser", err.message);  
+  } catch (error) {
+    console.error("Error in LoginUser", error.message);
+    return res.status(500).json({ error: error.message });
   }
-
 };
 
 // ___________Logout User___________
@@ -247,8 +326,21 @@ const updateUser = async (req, res) => {
     
      user = await user.save();
 
-    //  password should be null when seding the response to client browser(console)
+     //we need when we update the username or profilePic then it show on other posts reply (show my updated profilePic and username)
+    //  so we do this
+    //read form mongoDb notes  7:23  to 7:25
+    await Post.updateMany(
+      {"replies.userId": user.id},
+      {
+        $set:{
+          "replies.$[reply].username":user.username,  //changing or update username 
+          "replies.$[reply].userProfilePic":user.profilePic
+        }
+      },
+      {arrayFilters:[{"reply.userId":userId}]}
+    )
 
+    //  password should be null when seding the response to client browser(console)
     user.password = null;
 
      res.status(200).json( user );//message:"profile updated successfully",
