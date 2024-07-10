@@ -3,9 +3,11 @@ import { Button,Image, FormControl, Modal, ModalBody, ModalCloseButton, ModalCon
 import { useRef, useState } from "react"
 import usePreviewImg from "../hooks/usePreviewImg"
 import { BsFillImageFill } from "react-icons/bs"
-import { useRecoilValue } from "recoil"
+import { useRecoilState, useRecoilValue } from "recoil"
 import userAtom from "../atoms/userAtom"
 import useShowToast from "../hooks/useShowToast"
+import postsAtom from "../atoms/postsAtom"
+import { useParams } from "react-router-dom"
 
 const MAX_CHAR = 500;  //best practice
 
@@ -28,6 +30,10 @@ const CreatePost = () => {
 
         const [loading ,setLoading] = useState(false); //to show the loadingwhen post button is pressed
     
+        const [posts , setPosts] = useRecoilState(postsAtom);
+
+        const {username} = useParams();
+
         const handleTextChange = (e)=> {
             const inputText = e.target.value;
     
@@ -64,8 +70,12 @@ const CreatePost = () => {
                 
                 showToast("Success" , "Post created successfully" , "success");//2
     
+                if(username === user.username)  //if username from params === loggedIn user then set and show the post
+                {
+                  setPosts([data, ...posts]); //adding the new posts on posts array post1,post2,post3,newpost4
+                }
+
                 onClose();  //after creating post automatically close the post window using onClose coming from chakraUI modal
-                
                 setPostText(""); //same post hume na dekhe dubara as a suggestion when we click new +post
                 setImgUrl(""); 
 
@@ -78,7 +88,7 @@ const CreatePost = () => {
     
       return (
         <>
-          <Button onClick={onOpen} position={"fixed"} bottom={10} right={10} leftIcon={<AddIcon/>} bg={useColorModeValue("gray.300","gray.dark")} >Post</Button>
+          <Button onClick={onOpen} position={"fixed"} bottom={10} right={5} size={{base:"sm", sm:"md"}}  bg={useColorModeValue("gray.300","gray.dark")} ><AddIcon/>   </Button>
     
     {/* using chakra UI for model search model and 2 second wala is modal */}
     

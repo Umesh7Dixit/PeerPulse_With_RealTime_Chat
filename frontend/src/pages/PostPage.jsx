@@ -1,44 +1,125 @@
-import { Avatar, Box, Button, Divider, Flex, Image, Text } from "@chakra-ui/react"
-import { BsThreeDots } from "react-icons/bs"
+import { Avatar, Box, Button, Divider, Flex, Image, Spinner, Text } from "@chakra-ui/react"
 import Actions from "../components/Actions"
-import { useState } from "react";
+import useGetUserProfile from "../hooks/useGetUserProfile";
+import { useEffect } from "react";
+import useShowToast from "../hooks/useShowToast";
+import {  useNavigate, useParams } from "react-router-dom";
+import { formatDistanceToNow } from "date-fns";
+import { useRecoilState, useRecoilValue } from "recoil";
+import userAtom from "../atoms/userAtom";
+import { DeleteIcon } from "@chakra-ui/icons";
 import Comment from "../components/Comment";
+import postsAtom from "../atoms/postsAtom";
 
 const PostPage = () => {
 
-  const [liked , setLiked] = useState(false);
+  const showToast = useShowToast();
+  const {user, loading} = useGetUserProfile();  //getting the user data from  usegetuserprofile hook
+  const [ posts, setPosts ] = useRecoilState(postsAtom);
+
+  const {pid} = useParams();  //we gett the userId from URL we code it ont app.jsx
+  const currentUser = useRecoilValue(userAtom);
+  const navigate = useNavigate();
+  const currentPost = posts[0];  //we get the current post
+
+  
+
+  useEffect(()=>{
+
+    const getPost = async()=>{
+      setPosts([]); //to remove flicker effect on post page
+      try {
+        const res = await fetch(`/api/posts/${pid}`);
+        const data = await res.json();
+        
+        if(data.error){
+          showToast("Error",data.error,"error");
+          return ;
+        }
+
+
+        setPosts([data]);  //our postsAtom are also in array
+      
+      } catch (error) {
+        showToast("Error",error.message,"error");
+      }
+    }
+
+    getPost();
+
+  },[showToast,pid,setPosts]) ;
+
+  const handleDeletePost = async ()=> {
+    try {
+        // e.preventDefault();  we don't need e because handleDeletePost not inside any link tag it was in the home page
+        // first we need to confirm that the user really wan't to delete the reply
+        if(!window.confirm('Are you sure you want to delete'))return;
+
+        const res = await fetch(`/api/posts/${currentPost._id}`, {
+            method: 'DELETE',
+        });
+
+        const data = await res.json();
+        if(data.error){
+            showToast("Error", data.error, "error");
+            return;
+        }
+
+        showToast("Success", "Post deleted successfully", "success");
+        navigate(`/${user.username}`);
+
+    } catch (error) {
+        showToast("Error",error.message,'error');
+    }
+};
+
+  if(!user && loading){
+    return (
+      <Flex  justifyContent={"center"}  >
+         <Spinner size={"xl"} />
+      </Flex>
+    )
+  }
+
+  if(!currentPost) return null;
 
   return (
     < >
       <Flex>
         <Flex w={"full"} alignItems={"center"} gap={3} >
-          <Avatar src='/zuck-avatar.png' size={"md"} name="Mark Zuckerberg" />
+          <Avatar src={user.profilePic} size={"md"} name="Mark Zuckerberg" />
           <Flex>
-            <Text fontSize={"sm"} fontWeight={"bold"}  >markZuckerberg</Text>
+            <Text fontSize={"sm"} fontWeight={"bold"}  >{user.username}</Text>
             <Image src="/verified.png" w="4" h={4} ml={4} />
           </Flex>
         </Flex>
-        <Flex gap={4} alignItems={"center"} >
-          <Text fontSize={"sm"} color={"gray.light"} >1d</Text>
-          <BsThreeDots cursor={"pointer"} />
-        </Flex>
+        <Flex  gap={4} alignItems={"center"} >
+                        <Text fontSize={"xs"} width={36} textAlign={"right"} color={"gray.light"} > 
+                          {formatDistanceToNow(new Date(currentPost.createdAt))} ago 
+                          </Text>
+                        {/* i don't have a permission to delete the replies of other users so we do this  and "?" help to remove error(when we logout it(currentUser?._id) have undefined value so it not get anything) */}
+                        {
+                            currentUser?._id  === user._id && <DeleteIcon cursor={"pointer"} size={20} onClick={handleDeletePost}  />
+                        }
+                    </Flex>
       </Flex>
 
-      <Text my={3} >Let&apos;s talk about Threads.</Text>
+      <Text my={3} >{currentPost.text}</Text>
 
-      <Box borderRadius={6} overflow={"hidden"} border={"1px solid"} borderColor={"gray.light"} >
-            <Image src={"/post1.png"} w={"full"}  />
-      </Box>
+      {
+        currentPost.image && (
+          <Box borderRadius={6} overflow={"hidden"} border={"1px solid"} borderColor={"gray.light"} >
+            <Image src={currentPost.img} w={"full"}  />
+          </Box>
+        )
+      }
 
-      <Flex gap={3}  my={1}>
-        <Actions liked={liked} setLiked={setLiked}  />
+      <Flex gap={3}  my={3}>
+        {/* <Actions liked={liked} setLiked={setLiked}  /> */}
+        <Actions  post={currentPost}  />
       </Flex>
 
-      <Flex gap={2} alignItems={"center"} >
-        <Text color={"gray.light"} fontSize={"sm"} >2 replies </Text>
-        <Box w={0.5} h={0.5} borderRadius={"full"} bg={"gray.light"}  ></Box>
-        <Text color={"gray.light"} fontSize={"sm"} >{2 + (liked ? 1 : 0 )} likes </Text>
-      </Flex>
+      
 
       <Divider my={4} />
 
@@ -52,10 +133,14 @@ const PostPage = () => {
 
       <Divider my={4} />
 
-      <Comment comment="Looks really good!" createdAt="2d" likes={54} username="Kent Dodds" useravatar='https://bit.ly/kent-c-dodds'  />
-      <Comment comment="Nice thread 😒!" createdAt="1d" likes={37} username="Christian Nwamba" useravatar='https://bit.ly/code-beast'  />
-      <Comment comment="Awesome looking 👌" createdAt="7d" likes={42} username="Segun Adebayo" useravatar='https://bit.ly/sage-adebayo'  />
+      {
+        currentPost.replies.map( (reply) => (
+          <Comment key={reply._id} reply={reply} 
+                   lastReply={reply._id === currentPost.replies[currentPost.replies.length - 1]._id} //if it is last reply then we don't need to show devider line
+          />
 
+        ))
+      }
     </>
   )
 }

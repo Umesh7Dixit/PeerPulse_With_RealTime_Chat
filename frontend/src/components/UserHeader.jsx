@@ -14,13 +14,16 @@ import useShowToast from "../hooks/useShowToast";
 
 const UserHeader = ({ user }) => {
     
-    const toast = useToast();
-
-    
-    
+    const toast = useToast();  
     const currentUser = useRecoilValue(userAtom);  //this is the user that logged in
     
     const [following, setFollowing] = useState(user.followers.includes(currentUser._id))
+    
+    // creating the url copy
+    const copyURL = ()=>{  
+        const currentURL = window.location.href;
+        navigator.clipboard.writeText(currentURL).then(()=>{toast({ description: 'URL copied to clipboard',duration:1000,status:"success", isClosable:true})} );
+    } ; 
     
     const showToast = useShowToast();
     
@@ -28,11 +31,6 @@ const UserHeader = ({ user }) => {
 
     const [updating, setUpdating] = useState(false);
     
-    // creating the url copy
-    const copyURL = ()=>{  
-        const currentURL = window.location.href;
-        navigator.clipboard.writeText(currentURL).then(()=>{toast({ description: 'URL copied to clipboard',duration:1000,status:"success", isClosable:true})} );
-    } ; 
     
     const handleFollowUnfollow = async() => {
 
@@ -68,7 +66,7 @@ const UserHeader = ({ user }) => {
                 user.followers.pop(); //remove the following user from array of following
             }else{
                 showToast("Success",`Followed ${user.name}`,'success');
-                user.followers.push(currentUser._id); //remove the following user from array of following
+                user.followers.push(currentUser?._id); //remove the following user from array of following
                  //simulate adding to followers
             }
 
@@ -103,7 +101,7 @@ const UserHeader = ({ user }) => {
                 {     
                     user.profilePic && (
                    
-                     <Avatar name={user.name} src={user.profilePic} size={{ base:"md" , md:"xl"}}/>  
+                     <Avatar name={user.name} src={user?.profilePic} size={{ base:"md" , md:"xl"}}/>  
 
                     )
                 }
@@ -124,14 +122,14 @@ const UserHeader = ({ user }) => {
         <Text>{user.bio}</Text>
 
         {
-            currentUser._id === user._id && (  //we Link type of react-router-dom so stop reloading and only work on clink side
+            currentUser?._id === user._id && (  //we Link type of react-router-dom so stop reloading and only work on clink side
                 <Link as={RouterLink} to='/update'>  
                     <Button size={"sm"}  >Update Profile</Button>
                 </Link>
             )
         }
         
-        {   currentUser._id !== user._id &&  (<Button size={"sm"} onClick={handleFollowUnfollow} isLoading={updating} >
+        {   currentUser?._id !== user._id &&  (<Button size={"sm"} onClick={handleFollowUnfollow} isLoading={updating} >
                 { following ? "Unfollow":"Follow" }
             </Button>
         )}

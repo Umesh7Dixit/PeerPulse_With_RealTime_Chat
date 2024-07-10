@@ -1,47 +1,58 @@
 import { useEffect, useState } from "react"
 import UserHeader from "../components/UserHeader"
-import UserPost from "../components/UserPost"
 import { useParams } from "react-router-dom";
 import useShowToast from '../hooks/useShowToast'
 import { Flex, Spinner } from "@chakra-ui/react";
+import Post from '../components/Post.jsx'
+import useGetUserProfile from "../hooks/useGetUserProfile.jsx";
+import { useRecoilState } from "recoil";
+import postsAtom from "../atoms/postsAtom.js";
 
 const UserPage = () => {
 
-  const [user,setUser] = useState(null);
-
-  const showToast = useShowToast();
-
-  const [loading, setLoading] = useState(true);
+  const {user, loading} = useGetUserProfile();
 
   const { username } = useParams();  //get username form url (params) by useParams
+  const showToast = useShowToast();
+
+
+  const [posts, setPosts] = useRecoilState(postsAtom);  //post1, post2 , post3
+  const [fetchingPosts, setFetchingPosts] = useState(true); //set fetching
+
+
 
   useEffect(()=>{     //fetch user by particular username on url
 
-    const getUser = async () => {
-      setLoading(true);
+ 
+     
+
+    const getPosts = async()=> {
+      setFetchingPosts(true);
+  
       try {
-
-        const res = await fetch(`/api/users/profile/${username}`);   //sending req by sending username (dynamic route)   
+  
+        const res = await fetch(`/api/posts/user/${username}`);
         const data = await res.json();
-
-        if(data.error){
-          showToast("Error",data.error,"error");  //title,description,status
-          return;
-        }
-        setUser(data);
+        console.log(data);
+        setPosts(data);   //first it is empty array then data is set on setPosts
+  
+        
       } catch (error) {
-        showToast("Error",error,"error");
-      }finally {
-        setLoading(false);
+        showToast("Error",error.message,"error");
+        setPosts([]);
+      }finally{
+        setFetchingPosts(false);
       }
+  
+    }
 
-    };
-
-    getUser();
+    getPosts();
     
-  },[username, showToast])     //so we will get the user details by sending username on url
+  },[username, showToast,setPosts])     //so we will get the user details by sending username on url
 
   // useEffect will run whenever the username changes
+    console.log("posts is here",posts);
+ 
 
   if (!user && loading) {
     return (
@@ -51,23 +62,35 @@ const UserPage = () => {
     )
   }
 
-  if (!user && !loading) {
-    return (
-      <Flex justifyContent={'center'} >
-        <h1>User not found</h1>
-      </Flex>
-    )
-  }
+  // if (!user && !loading) {
+  //   return (
+  //     <Flex justifyContent={'center'} >
+  //       <h1>User not found</h1>
+  //     </Flex>
+  //   )
+  // }
 
   return (
-    <div>
+    < >
         <UserHeader user={user} />
-        <UserPost likes={1200} replies={481} postImage="/post1.png" postTitle="Let's talk about threads." /> 
-        <UserPost likes={1452} replies={262} postImage="/post2.png" postTitle="Nice tutorial." />
-        <UserPost likes={657} replies={972} postImage="/post3.png" postTitle="I Love this guy." />
-        <UserPost likes={756} replies={462} postImage="/coolimage.png" postTitle="This is my first thread." />
-         
-    </div>
+
+        { !fetchingPosts && posts.length === 0 && <h1>User has not posts.</h1>}
+
+        {
+          fetchingPosts && (
+            <Flex justifyContent={'center'} my={12}  >
+              <Spinner size={"xl"} />
+            </Flex>
+          )
+        }
+
+        {
+          posts.map((post) => (
+            <Post key={post._id} post={post}  postedBy={post.postedBy}   />
+          ))
+        }
+        
+    </ >
   )
 }
 
