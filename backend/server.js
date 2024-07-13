@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import connectDB from './db/connectDB.js';
 import userRoutes from "./routes/userRoutes.js";
 import postRoutes from "./routes/postRoutes.js";
+import messageRoutes from "./routes/messageRoutes.js";
 import cookieParser from 'cookie-parser';
 
 import { v2 as cloudinary } from "cloudinary";
@@ -48,6 +49,8 @@ app.use(cookieParser()); //it allows you to get the cookies from the request.bod
 app.use("/api/users",userRoutes);  //it create http://localhost:5000/api/users/signup
 
 app.use("/api/posts",postRoutes);
+
+app.use("/api/messages",messageRoutes);
 
 
 app.listen(PORT,()=> console.log(`Server Started at http://localhost:${PORT}`));   

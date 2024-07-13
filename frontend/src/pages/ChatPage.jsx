@@ -2,7 +2,6 @@ import { SearchIcon } from "@chakra-ui/icons"
 import { Box, Button, Flex, Input,SkeletonCircle,Text, useColorModeValue } from "@chakra-ui/react"
 import Conversation from "../components/Conversation"
 import MessageContainer from "../components/MessageContainer"
-// import GiConversation from 'react-icons/gi'
 
 const ChatPage = () => {
   return (

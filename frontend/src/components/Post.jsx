@@ -15,7 +15,6 @@ const Post = ( { post,postedBy  } ) => {
 
 
     const [user, setUser] = useState(null);
-
     const showToast = useShowToast();
 
     const navigate = useNavigate();
@@ -58,7 +57,7 @@ const Post = ( { post,postedBy  } ) => {
             // first we need to confirm that the user really wan't to delete the reply
             if(!window.confirm('Are you sure you want to delete'))return;
 
-            const res = await fetch(`/api/posts/${post._id}`, {
+            const res = await fetch(`/api/posts/${post?._id}`, {
                 method: 'DELETE',
             });
 
