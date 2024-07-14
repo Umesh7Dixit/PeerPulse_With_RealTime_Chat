@@ -87,45 +87,51 @@ async function getMessages(req, res){
     }
 }
 
-// async function getConversations(req, res){
+async function getConversations(req, res){
 
-//     const userId = req.user._id;
+    const userId = req.user._id;
 
-//     try{
+    try{
 
-//         // 8:40
-//         // we need to fetch all conversations ot the particular user and also we need username and profilePic
-//         // but we not create model in message which provide the username and profilePic
-//         // so mongooser provide the method called populate which helps to get all stuf they use reference to get all stuff
+        // 8:40
+        // we need to fetch all conversations ot the particular user and also we need username and profilePic
+        // but we not create model in message which provide the username and profilePic
+        // so mongooser provide the method called populate which helps to get all stuf they use reference to get all stuff
 
-//         const conversations  = await Conversation.find({  participants: userId}).populate({
-//             path: "participants",           //reference 
-//             select: "username profilePic"  //we need this
-//         });
+        const conversations  = await Conversation.find({  participants: userId}).populate({
+            path: "participants",           //reference 
+            select: "username profilePic"  //we need this
+        });
 
-//         res.status(200).json(conversations);
-//     }
-//     catch(error)
-//     {
-//         res.status(500).json({error:error.message});
-//     }
-// }
+// 		// remove the current user from the participants array
+        conversations.forEach(conversation =>{
+            conversation.participants = conversation.participants.filter(
+                participant => participant._id.toString() !== userId.toString());  //remove the current user from participants array
+        } )
 
-async function getConversations(req, res) {
-	const userId = req.user._id;
-	try {
-		const conversations = await Conversation.find({ participants: userId }).populate({
-			path: "participants",
-			select: "username profilePic",
-		});
-
-		// remove the current user from the participants array
-		
-		res.status(200).json(conversations);
-	} catch (error) {
-		res.status(500).json({ error: error.message });
-	}
+        res.status(200).json(conversations);
+    }
+    catch(error)
+    {
+        res.status(500).json({error:error.message});
+    }
 }
+
+// async function getConversations(req, res) {
+// 	const userId = req.user._id;
+// 	try {
+// 		const conversations = await Conversation.find({ participants: userId }).populate({
+// 			path: "participants",
+// 			select: "username profilePic",
+// 		});
+
+		
+
+// 		res.status(200).json(conversations);
+// 	} catch (error) {
+// 		res.status(500).json({ error: error.message });
+// 	}
+// }
 
 export {sendMessage,getMessages,getConversations};
 
