@@ -6,7 +6,8 @@ import useShowToast from "../hooks/useShowToast"
 import { conversationsAtom, selectedConversationAtom } from "../atoms/messagesAtom"
 import { useRecoilValue, useSetRecoilState } from "recoil"
 import userAtom from "../atoms/userAtom"
-import { useSocket } from "../context/SocketContext"
+import { useSocket } from "../context/SocketContext";
+import messageSound from "../assets/sounds/message.mp3";
 
 
 const MessageContainer = () => {
@@ -27,6 +28,11 @@ const MessageContainer = () => {
                  setMessages((prevMessages)=> [...prevMessages,message])
             }
         
+            if(!document.hasFocus()) //11:49
+            {
+                const sound = new Audio(messageSound)
+                sound.play();
+            }
 
         // now we send the message and also we need to show on lastMessage in bottom on username so that
         setConversations((prev)=> {
