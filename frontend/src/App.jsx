@@ -22,7 +22,7 @@ function App() {
   return (
     // <Container  width={"650px"} >
     <Box position={"relative"} w="full">
-      <Container maxW={ pathname==='/' ? "9000" : "620px" }>
+      <Container maxW={ pathname==='/' ? {base :"620px" , md: "900px"} : "620px" }>
         <Header />
         <Routes>
           <Route

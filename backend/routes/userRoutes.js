@@ -14,11 +14,13 @@ const router = express.Router();
 // import { signupUser } from '../controllers/userController.js';
 // router.get('/signup', signupUser);
 
-import { signupUser, loginUser, logoutUser, followUnfollowUser, updateUser,getUserProfile} from '../controllers/userController.js';
+import { signupUser, loginUser, logoutUser, followUnfollowUser, updateUser,getUserProfile, getSuggestedUsers} from '../controllers/userController.js';
 import protectRoute from '../middlewares/protectRoute.js';
  
 // getUserProfile is not protected by middlewares (we can see others users profile without loggedin)
 router.get("/profile/:query", getUserProfile)
+
+router.get("/suggested", protectRoute, getSuggestedUsers);
 
 router.post('/signup', signupUser);
 

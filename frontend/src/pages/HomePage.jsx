@@ -1,12 +1,10 @@
 import {  Box, Flex, Spinner } from "@chakra-ui/react"
 import { useEffect, useState } from "react";
-
 import useShowToast from '../hooks/useShowToast.jsx'
 import Post from "../components/Post.jsx";
 import { useRecoilState } from "recoil";
 import postsAtom from "../atoms/postsAtom.js";
 import SuggestedUsers from "../components/SuggestedUsers.jsx";
-// import { useRecoilState } from "recoil";
 
 
 const HomePage = () => {
@@ -24,7 +22,7 @@ const HomePage = () => {
                 setPosts([]); //we do this because when i go to home page then it first show posts then all homepage and before we fetch anything the posts gonna be empty array
                 try{
 
-                    const res = await fetch('/api/posts/feed');
+                    const res = await fetch("/api/posts/feed");
                     const data = await res.json();
 
                     if(data.error)
@@ -34,7 +32,6 @@ const HomePage = () => {
                     }
 
                     console.log(data);
-
                     setPosts(data);
 
                     
@@ -57,22 +54,27 @@ const HomePage = () => {
        
         <Flex gap={'10'} alignItems={"flex-start"} >
            <Box flex={70} >
+                {
+                     !loading && posts.length === 0 && <h1>Follow some users to see the feed</h1>
+                }
+
                 { loading && (
                          <Flex justify="center" >
                              <Spinner size='xl' />
                          </Flex>
                      ) }
 
-                {
-                     !loading && posts.length === 0 && <h1>Follow some users to see the feed</h1>
-                }
+                
 
                 {  posts.map((post) =>(
-                         <Post key={post?._id} post={post} postedBy={post?.postedBy} />
+                         <Post key={post._id} post={post} postedBy={post.postedBy} />
                      )) }
            </Box>
 
-           <Box flex={30} border={"1px solid black"} >
+           <Box flex={30} display={{
+					base: "none", //for mobile we dont see SuggestedUsers
+					md: "block",
+				}} >
                      <SuggestedUsers/>
            </Box>
         </Flex>

@@ -1,3 +1,4 @@
+
 import { Avatar, Box,  Button,  Flex,  Link,  Menu,  MenuButton,  MenuItem,  MenuList,  Portal,  Text,  VStack, useToast } from "@chakra-ui/react"
 import { BsInstagram } from "react-icons/bs"
 import { CgMoreO } from "react-icons/cg"
@@ -5,8 +6,7 @@ import { useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
 
 import { Link as RouterLink } from 'react-router-dom';
-import { useState } from "react";
-import useShowToast from "../hooks/useShowToast";
+import useFollowUnfollow from "../hooks/useFollowUnfollow.js";
 
 
 //for responsive avatar size={{ base:"md" , md:"xl"} base me medium ho jaye and medium screens pr large ho jaye avatar
@@ -17,7 +17,6 @@ const UserHeader = ({ user }) => {
     const toast = useToast();  
     const currentUser = useRecoilValue(userAtom);  //this is the user that logged in
     
-    const [following, setFollowing] = useState(user.followers.includes(currentUser._id))
     
     // creating the url copy
     const copyURL = ()=>{  
@@ -25,63 +24,10 @@ const UserHeader = ({ user }) => {
         navigator.clipboard.writeText(currentURL).then(()=>{toast({ description: 'URL copied to clipboard',duration:1000,status:"success", isClosable:true})} );
     } ; 
     
-    const showToast = useShowToast();
-    
-    console.log(following);
+    const {handleFollowUnfollow , updating , following } = useFollowUnfollow(user);
 
-    const [updating, setUpdating] = useState(false);
     
     
-    const handleFollowUnfollow = async() => {
-
-        if(!currentUser)
-        {
-            showToast("Error", "Please login to follow or unfollow users", "error");
-            return;
-        }
-
-        if(updating)return;
-
-        setUpdating(true);
-         
-        
-        try {
-
-            const res = await fetch(`/api/users/follow/${user._id}`,{
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            })
-
-            const data = await res.json();
-
-            if(data.error) {
-                showToast("Error", data.error, "error");
-                return;
-            }
-
-            if(following) {
-                showToast("Success",`Unfollowed ${user.name}`,'success');
-                user.followers.pop(); //remove the following user from array of following
-            }else{
-                showToast("Success",`Followed ${user.name}`,'success');
-                user.followers.push(currentUser?._id); //remove the following user from array of following
-                 //simulate adding to followers
-            }
-
-            setFollowing(!following);//we reserse the following to show different fowwing or follow button to other user
-
-            console.log(data);
-
-
-            
-        } catch (error) {
-            showToast("Error", error , "error");
-        } finally{
-            setUpdating(false);
-        }
-    }
 
 
   return (

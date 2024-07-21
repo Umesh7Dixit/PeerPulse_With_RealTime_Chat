@@ -13,7 +13,7 @@ const createPost = async (req, res) => {
 
 // checks
         if(!postedBy || !text){
-                return res.status(400).json({ error: 'Post must contain a postedBy and text.' });
+                return res.status(400).json({ error: 'Post must contain a postedBy and text' });
             }
 
         const user = await User.findById(postedBy);

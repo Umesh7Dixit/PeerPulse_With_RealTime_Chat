@@ -353,7 +353,49 @@ const updateUser = async (req, res) => {
 }
 
 
+// ___________Get Suggested Users__________
+
+const getSuggestedUsers = async (req, res) => {
+
+  try {
+
+    // exclude the current user from suggested users array and also remove all user which he already following
+		const userId = req.user._id;
+
+    // we get the users followed by the current user
+		const usersFollowedByYou = await User.findById(userId).select("following");
+
+    // it will try to fetch the ramdom 10 users from database like [0,1,2,3,4,5,6,7,8,9]
+    const users = await User.aggregate([
+			{
+				$match: {
+					_id: { $ne: userId },
+				},
+			},
+			{
+				$sample: { size: 10 },
+			},
+		]);
+    
+    // lets [0,1,2,3,4,5,6,7,8,9] if we already followed user 6,7,8,9 so we filter
+		const filteredUsers = users.filter((user) => !usersFollowedByYou.following.includes(user._id));
+    // i only want to suggest only 0 to 4 user
+		const suggestedUsers = filteredUsers.slice(0, 4);
+
+    // we remove password when sending the response to client browser(console) so if user console log the suggested users then it see pasword section null
+    suggestedUsers.forEach((user) => (user.password = null));
+
+
+		res.status(200).json(suggestedUsers);
+
+
+    
+  } catch (error) {
+		res.status(500).json({ error: error.message });
+  }
+
+}
 
 
 
-export { signupUser, loginUser, logoutUser, followUnfollowUser, updateUser ,getUserProfile };
+export { signupUser, loginUser, logoutUser, followUnfollowUser, updateUser ,getUserProfile , getSuggestedUsers };
