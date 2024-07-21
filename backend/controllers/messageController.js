@@ -1,12 +1,14 @@
 import Conversation from "../models/conversationModel.js";
 import Message from "../models/messageModel.js";
-
+import { getRecipientSocketId, io } from "../socket/socket.js";
+import {v2 as cloudinary} from 'cloudinary'
 
 async function sendMessage(req,res){
     try {
 //         // the receipientId is the id jikso hume message bhejna hai
 //         // like jane bhejna chahte hai umeshdixit ko message to recipientId = umeshDixit ke _id
         const { recipientId, message } = req.body;
+        let {img} = req.body;
         const senderId = req.user._id;                                
 //         // we need to start conversation but first we need to check if we sending the first message 
 //         // then we need to check conversation already exists or not
@@ -31,12 +33,18 @@ async function sendMessage(req,res){
             await conversation.save();  //save new conversation into db
         }
 
+        if(img){
+            const uploadedResponse = await cloudinary.uploader.upload(img);
+            img = uploadedResponse.secure_url //it give us the url of the uploaded image
+        }
+
 //         // if we have a conversation we just integrate the message into the conversation
 
         const newMessage = new Message({
             conversationId: conversation._id,
             sender: senderId,
-            text: message
+            text: message,
+            img:img || "",
         });
         
 //save the newMessage into db and then update tha last message field with this new message
@@ -50,6 +58,14 @@ async function sendMessage(req,res){
             })
         ])  //so when we send a new message then it updates on the your conversation message fiels below the username and also in conversation 8:26
 
+        // sending the recipientId(userId) to socket.js and in responce get the socketId coming from getRecipientSocketId
+        // and then emit the message to particular socket or user by sending particular socketID
+        const recipientSocketId = getRecipientSocketId(recipientId) 
+        if(recipientSocketId)
+        {
+            io.to(recipientSocketId).emit("newMessage",newMessage); //(event name,message)
+        }
+        
         res.status(201).json(newMessage);
         
 
@@ -116,22 +132,7 @@ async function getConversations(req, res){
         res.status(500).json({error:error.message});
     }
 }
-
-// async function getConversations(req, res) {
-// 	const userId = req.user._id;
-// 	try {
-// 		const conversations = await Conversation.find({ participants: userId }).populate({
-// 			path: "participants",
-// 			select: "username profilePic",
-// 		});
-
-		
-
-// 		res.status(200).json(conversations);
-// 	} catch (error) {
-// 		res.status(500).json({ error: error.message });
-// 	}
-// }
+ 
 
 export {sendMessage,getMessages,getConversations};
 

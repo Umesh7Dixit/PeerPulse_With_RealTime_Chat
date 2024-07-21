@@ -1,31 +1,28 @@
 import { Box, Container } from "@chakra-ui/react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import UserPage from "./pages/UserPage";
 import PostPage from "./pages/PostPage";
 import UpdateProfilePage from "./pages/UpdateProfilePage.jsx";
 import ChatPage from "./pages/ChatPage.jsx";
-
 import Header from "./components/Header";
-
 import HomePage from "./pages/HomePage";
 import AuthPage from "./pages/AuthPage";
 import { useRecoilValue } from "recoil";
 import userAtom from "./atoms/userAtom";
-// import LogoutButton from './components/LogoutButton';
-
 import CreatePost from "./components/CreatePost";
 
 // "/:username" is dynamic route
 
 function App() {
   const user = useRecoilValue(userAtom);
+  const {pathname} = useLocation();
 
   console.log(user);
 
   return (
     // <Container  width={"650px"} >
     <Box position={"relative"} w="full">
-      <Container width={"650px"}>
+      <Container maxW={ pathname==='/' ? "9000" : "620px" }>
         <Header />
         <Routes>
           <Route

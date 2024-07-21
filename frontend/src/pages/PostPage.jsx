@@ -135,7 +135,7 @@ const PostPage = () => {
 
       {
         currentPost.replies.map( (reply) => (
-          <Comment key={reply._id} reply={reply} 
+          <Comment key={reply?._id} reply={reply} 
                    lastReply={reply._id === currentPost.replies[currentPost.replies.length - 1]._id} //if it is last reply then we don't need to show devider line
           />
 

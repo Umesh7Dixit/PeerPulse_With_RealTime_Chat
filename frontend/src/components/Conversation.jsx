@@ -1,11 +1,11 @@
 import { Avatar, AvatarBadge,Text, Flex,Image, Stack, useColorModeValue, WrapItem, Box, useColorMode } from "@chakra-ui/react"
 import { useRecoilState, useRecoilValue } from "recoil";
 import userAtom from '../atoms/userAtom';
-import { BsCheck2All } from "react-icons/bs";
+import { BsCheck2All, BsFillImageFill } from "react-icons/bs";
 import { selectedConversationAtom } from "../atoms/messagesAtom";
 
 
-const Conversation = ({conversation}) => {
+const Conversation = ({conversation, isOnline }) => {
     const user = conversation.participants[0];
     const lastMessage = conversation.lastMessage;
     const currentUser = useRecoilValue(userAtom);
@@ -46,8 +46,8 @@ const Conversation = ({conversation}) => {
                 }} 
                 src={user.profilePic}
             >
-
-            <AvatarBadge boxSize={'1em'} bg={"green.500"}  />
+                {/* 10:17 */}
+            { isOnline ? <AvatarBadge boxSize={'1em'} bg={"green.500"}  /> : "" }
             </Avatar>
         </WrapItem>
 
@@ -58,13 +58,13 @@ const Conversation = ({conversation}) => {
             <Text fontSize={'xs'} display={'flex'} alignItems={'center'} gap={1} >
             {/* 8:57 if we send the message we know that the last message is send by me */}
                 {  currentUser._id === lastMessage.sender ? (
-						<Box color={lastMessage.seen ? "white.400" : ""}>
+						<Box color={lastMessage.seen ? "blue.400" : ""}>
 							<BsCheck2All size={16} />  
 						</Box>
 					) : ( "" )}
 
                 {/* if last message is too large then make ... like "umesh please reply..." */}
-                {lastMessage.text.length > 18 ? lastMessage.text.substring(0,18) + "..." : lastMessage.text}  
+                {lastMessage.text?.length > 18 ? lastMessage.text.substring(0,18) + "..." : lastMessage.text || <BsFillImageFill size={16} />}  
             </Text>
         </Stack>
     </Flex>

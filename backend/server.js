@@ -8,13 +8,14 @@ import cookieParser from 'cookie-parser';
 
 import { v2 as cloudinary } from "cloudinary";
 
+import {app, server} from "./socket/socket.js"
 
 dotenv.config();   //to be able to read the content of .env file 
 connectDB(); 
  
 
+// 10:01  const app = express();
 
-const app = express();
 const PORT = process.env.PORT || 5000;
 
 
@@ -44,8 +45,7 @@ app.use(cookieParser()); //it allows you to get the cookies from the request.bod
 
 
 
-// ____________________Routes _____________________
-
+// Routes
 app.use("/api/users",userRoutes);  //it create http://localhost:5000/api/users/signup
 
 app.use("/api/posts",postRoutes);
@@ -53,7 +53,9 @@ app.use("/api/posts",postRoutes);
 app.use("/api/messages",messageRoutes);
 
 
-app.listen(PORT,()=> console.log(`Server Started at http://localhost:${PORT}`));   
-
+// 10:01 app.listen(PORT,()=> console.log(`Server Started at http://localhost:${PORT}`));   
+// instead of listening express app listen from http server i.e server
+server.listen(PORT,()=> console.log(`Server Started at http://localhost:${PORT}`));   
+// now we are able to handle socket related thing and also http requests
 
                        

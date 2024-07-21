@@ -18,6 +18,7 @@ import {
   selectedConversationAtom,
 } from "../atoms/messagesAtom";
 import userAtom from "../atoms/userAtom";
+import { useSocket } from "../context/SocketContext";
 // import { GiConversation } from "react-icons/gi";
 
 const ChatPage = () => {
@@ -31,6 +32,28 @@ const ChatPage = () => {
   const [conversations, setConversations] = useRecoilState(conversationsAtom);
   const currentUser = useRecoilValue(userAtom);
   const showToast = useShowToast();
+  const {socket,onlineUsers} = useSocket(); //hook
+
+
+  useEffect(()=>{
+    socket?.on("messagesSeen",({ conversationId }) => {
+      setConversations( (prev) => {
+        const updatedConversations = prev.map( (conversation) => {
+          if(conversation._id === conversationId){
+            return {
+              ...conversation,
+              lastMessage: {
+                ...conversation.lastMessage,
+                seen:true,
+              },
+            };
+          }
+          return conversation;
+        });
+        return updatedConversations;
+      })
+    })
+  },[socket,setConversations])
 
   useEffect(() => {
     const getConversations = async () => {
@@ -72,7 +95,10 @@ const ChatPage = () => {
 
       //(9:38)if user is already in a conversation with the searched user then we searched in conversation array
       // then we checked searchedUser._id from participants array in conversation
-      const conversationAlreadyExists = conversations.find(conversation => conversation.participants[0]._id === searchedUser._id);
+      const conversationAlreadyExists = conversations.find(
+          (conversation) => conversation.participants[0]._id === searchedUser._id
+        );
+      
       if(conversationAlreadyExists){
         // set the setSelect edConversation
         setSelectedConversation({
@@ -90,7 +116,7 @@ const ChatPage = () => {
         mock:true,
         lastMessage: {
           text:"",
-          sender:""
+          sender:"",
         },
         _id:Date.now(),
         participants:[
@@ -98,9 +124,9 @@ const ChatPage = () => {
             _id: searchedUser._id,
             username: searchedUser.username,
             profilePic: searchedUser.profilePic,
-          }
-        ]
-      }
+          },
+        ],
+      };
 
       setConversations( (prevConvs) => [...prevConvs, mockConversation]);
 
@@ -180,11 +206,13 @@ const ChatPage = () => {
             ))}
 
           {!loadingConversations &&
-            conversations.map((conversation) => (
-              <Conversation
-                key={conversation._id}
-                conversation={conversation}
-              />
+              conversations.map((conversation) => (
+                <Conversation  
+                              key={conversation._id} 
+                                // it check the user we are chatting with kya vo hai onlineUsers array me agar hai to true else false
+                              isOnline={ onlineUsers.includes(conversation.participants[0]._id)}
+                              conversation={conversation} 
+                               />
             ))}
         </Flex>
 

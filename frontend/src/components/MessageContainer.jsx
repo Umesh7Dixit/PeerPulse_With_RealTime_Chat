@@ -3,18 +3,91 @@ import Message from "./Message"
 import MessageInput from "./MessageInput"
 import { useEffect, useRef, useState } from "react"
 import useShowToast from "../hooks/useShowToast"
-import { selectedConversationAtom } from "../atoms/messagesAtom"
-import { useRecoilState, useRecoilValue } from "recoil"
+import { conversationsAtom, selectedConversationAtom } from "../atoms/messagesAtom"
+import { useRecoilValue, useSetRecoilState } from "recoil"
 import userAtom from "../atoms/userAtom"
+import { useSocket } from "../context/SocketContext"
+
 
 const MessageContainer = () => {
 
     const showToast = useShowToast();
-    const [selectedConversation, setSelectedConversation] = useRecoilState(selectedConversationAtom);
+    const selectedConversation = useRecoilValue(selectedConversationAtom);
     const [loadingMessages, setLoadingMessages] = useState(true);
     const [messages, setMessages] = useState([]);  //hold the messages
     const currentUser = useRecoilValue(userAtom); 
-    const messageEndRef = useRef(null);
+    const {socket} = useSocket(); //context hook //socket is an object we need to destructure the socket form SocketContext,jsx we provide value {{socket}}
+    const setConversations = useSetRecoilState(conversationsAtom);
+
+    const messageEndRef = useRef(null);//for automatically scroll down when new messages arrive or send
+
+    useEffect(()=>{
+        socket.on("newMessage",(message)=>{
+            if(selectedConversation._id === message.conversationId){
+                 setMessages((prevMessages)=> [...prevMessages,message])
+            }
+        
+
+        // now we send the message and also we need to show on lastMessage in bottom on username so that
+        setConversations((prev)=> {
+            const updatedConversations = prev.map( conversation => {
+                if(conversation._id === message.conversationId){ //find the conversationId
+                    return {
+                        ...conversation,
+                        lastMessage:{
+                            text: messages.text,
+                            sender:messages.sender,
+                        }
+                    }
+                }
+                return conversation;
+            })
+            return updatedConversations;
+        })
+
+        // when user disconnect(unmount) then we remove the newMessage event
+    })
+        return ()=> socket.off("newMessage"); 
+
+    },[socket, selectedConversation, setConversations]);
+
+    // useEffect for blue tick
+    useEffect(()=>{
+        const lastMessageIsFromOtherUser = messages.length && messages[messages.length-1].sender !== currentUser._id
+        if(lastMessageIsFromOtherUser)
+        {
+            socket.emit("markMessagesAsSeen",{
+                conversationId: selectedConversation._id,
+                userId:selectedConversation.userId
+            })
+        }
+
+        socket.on("messagesSeen",(conversationId)=>{
+            if(selectedConversation._id === conversationId){
+                setMessages( prev => {
+                    const updateMessages = prev.map(message => {
+                        if(!message.seen){
+                            return {
+                                ...message,
+                                seen:true
+                            }
+                        }
+                        return message
+                    })
+                    return updateMessages;
+                })
+            }
+        })
+
+    },[socket,currentUser._id,messages,selectedConversation])
+
+    // whenever the messages state changes we will run this useEffect
+    //for automatically scroll down when new messages arrive or send
+    useEffect(()=>{
+
+        messageEndRef.current?.scrollIntoView({ behavior: "smooth" })
+
+    },[messages])
 
 
     useEffect(()=>{
@@ -22,6 +95,7 @@ const MessageContainer = () => {
             setLoadingMessages(true);
             setMessages([]);
             try {
+                if(selectedConversation.mock)return;
                 const res = await fetch(`/api/messages/${selectedConversation.userId}`)
                 const data = await res.json();
                 if(data.error)
@@ -40,7 +114,7 @@ const MessageContainer = () => {
 
         getMessages();
 
-    },[showToast,selectedConversation.userId]);
+    },[showToast,selectedConversation.userId,selectedConversation.mock]);
 
   return (
     <Flex flex={'70'}
@@ -58,8 +132,8 @@ const MessageContainer = () => {
 
         <Flex  flexDir={'column'} p={2} gap={4} my={4}
                 height={"400px"} overflowY={'auto'}    >
-                {loadingMessages && (
-                    [...Array(8)].map((_, i) =>(
+                {loadingMessages && 
+                    [...Array(5)].map((_, i) =>(
                         <Flex key={i}
                             gap={2}
                             alignItems={'center'}
@@ -75,9 +149,9 @@ const MessageContainer = () => {
                             </Flex>
                             {i%2 !==0 && <SkeletonCircle size={7} />}
                         </Flex>
-                    )) )} 
+                    )) } 
                     
-                    {!loadingMessages && (
+                    {!loadingMessages && 
                         messages.map((message) =>(
                         <Flex
 							key={message._id}
@@ -87,7 +161,7 @@ const MessageContainer = () => {
 							<Message message={message} ownMessage={currentUser._id === message.sender} />
 						</Flex>                     
                         ))
-                    )}
+                    }
 
                     </Flex>
 
