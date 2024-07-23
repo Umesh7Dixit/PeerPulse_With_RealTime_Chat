@@ -47,7 +47,7 @@ const Conversation = ({conversation, isOnline }) => {
                 src={user.profilePic}
             >
                 {/* 10:17 */}
-            { isOnline ? <AvatarBadge boxSize={'1em'} bg={"green.500"}  /> : "" }
+            { isOnline ? <AvatarBadge boxSize='1em' bg='green.500'  /> : "" }
             </Avatar>
         </WrapItem>
 
@@ -72,3 +72,8 @@ const Conversation = ({conversation, isOnline }) => {
 }
 
 export default Conversation 
+
+
+
+
+
