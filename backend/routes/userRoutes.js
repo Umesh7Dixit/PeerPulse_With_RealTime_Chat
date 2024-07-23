@@ -14,7 +14,7 @@ const router = express.Router();
 // import { signupUser } from '../controllers/userController.js';
 // router.get('/signup', signupUser);
 
-import { signupUser, loginUser, logoutUser, followUnfollowUser, updateUser,getUserProfile, getSuggestedUsers} from '../controllers/userController.js';
+import { signupUser, loginUser, logoutUser, followUnfollowUser, updateUser,getUserProfile, getSuggestedUsers, freezeAccount } from '../controllers/userController.js';
 import protectRoute from '../middlewares/protectRoute.js';
  
 // getUserProfile is not protected by middlewares (we can see others users profile without loggedin)
@@ -34,5 +34,6 @@ router.post("/follow/:id", protectRoute, followUnfollowUser); //we want to follo
 
 // update user profile
 router.put("/update/:id", protectRoute, updateUser);  //put for update profile
+router.put("/freeze", protectRoute, freezeAccount);
 
 export default router;

@@ -14,8 +14,6 @@ const UserPage = () => {
 
   const { username } = useParams();  //get username form url (params) by useParams
   const showToast = useShowToast();
-
-
   const [posts, setPosts] = useRecoilState(postsAtom);  //post1, post2 , post3
   const [fetchingPosts, setFetchingPosts] = useState(true); //set fetching
 
@@ -23,10 +21,8 @@ const UserPage = () => {
 
   useEffect(()=>{     //fetch user by particular username on url
 
- 
-     
-
     const getPosts = async()=> {
+      if(!user)return;
       setFetchingPosts(true);
   
       try {
@@ -48,7 +44,7 @@ const UserPage = () => {
 
     getPosts();
     
-  },[username, showToast,setPosts])     //so we will get the user details by sending username on url
+  },[username, showToast,setPosts,user])     //so we will get the user details by sending username on url
 
   // useEffect will run whenever the username changes
     console.log("posts is here",posts);

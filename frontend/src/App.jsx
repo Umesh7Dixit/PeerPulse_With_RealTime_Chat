@@ -10,6 +10,7 @@ import AuthPage from "./pages/AuthPage";
 import { useRecoilValue } from "recoil";
 import userAtom from "./atoms/userAtom";
 import CreatePost from "./components/CreatePost";
+import SettingsPage from "./pages/SettingsPage.jsx";
 
 // "/:username" is dynamic route
 
@@ -57,11 +58,11 @@ function App() {
 
           <Route path="/:username/post/:pid" element={<PostPage />} />
 
-          <Route
-            path="/chat"
-            element={user ? <ChatPage /> : <Navigate to={"/auth"} />}
-          />
-        </Routes>
+          <Route   path="/chat"   element={user ? <ChatPage /> : <Navigate to={"/auth"} />}  />
+          
+          <Route   path="/settings"   element={user ? <SettingsPage /> : <Navigate to={"/auth"} />}  />
+          
+          </Routes>
 
         {/* if user present then show logout button */}
         {/* {user && <LogoutButton/>} */}

@@ -44,6 +44,11 @@ const userSchema = mongoose.Schema({
         default: "",
     },
 
+    isFrozen: {
+        type: Boolean,
+        default: false,
+    },
+
 }, {timestamps:true/*this adds the created at and updated at fields*/, } 
 
 );

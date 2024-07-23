@@ -16,6 +16,7 @@ const UserHeader = ({ user }) => {
     
     const toast = useToast();  
     const currentUser = useRecoilValue(userAtom);  //this is the user that logged in
+    const {handleFollowUnfollow , updating , following } = useFollowUnfollow(user);
     
     
     // creating the url copy
@@ -23,10 +24,6 @@ const UserHeader = ({ user }) => {
         const currentURL = window.location.href;
         navigator.clipboard.writeText(currentURL).then(()=>{toast({ description: 'URL copied to clipboard',duration:1000,status:"success", isClosable:true})} );
     } ; 
-    
-    const {handleFollowUnfollow , updating , following } = useFollowUnfollow(user);
-
-    
     
 
 
