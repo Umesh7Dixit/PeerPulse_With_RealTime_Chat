@@ -120,29 +120,7 @@ export default MessageInput;
 
 
 
-
-
-//   return (
-//     <>
-//         <Flex  gap={2} alignItems={"center"}  >
-//           <form onSubmit={handleSendMessage} >
-//           <InputGroup>
-//               <Input  w={'full'} placeholder="Type a message" onChange={(e)=> setMessageText(e.target.value)} value={messageText} />
-//               <InputRightElement onClick={handleSendMessage} cursor={"pointer"} >
-//                   <IoSendSharp  />
-//               </InputRightElement>
-//           </InputGroup>
-//           </form>
-//         </Flex>
-        
-//     </>
-//   )
-// }
-
-// export default MessageInput; 
-
-
-
+ 
 
 
 

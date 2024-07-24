@@ -1,347 +1,181 @@
-// import { Avatar, Divider, Flex, Image, Skeleton, SkeletonCircle, Text, useColorModeValue } from "@chakra-ui/react"
-// import Message from "./Message"
-// import MessageInput from "./MessageInput"
-// import { useEffect, useRef, useState } from "react"
-// import useShowToast from "../hooks/useShowToast"
-// import { conversationsAtom, selectedConversationAtom } from "../atoms/messagesAtom"
-// import { useRecoilValue, useSetRecoilState } from "recoil"
-// import userAtom from "../atoms/userAtom"
-// import { useSocket } from "../context/SocketContext";
-// import messageSound from "../assets/sounds/message.mp3";
-
-
-// const MessageContainer = () => {
-
-//     const showToast = useShowToast();
-//     const selectedConversation = useRecoilValue(selectedConversationAtom);
-//     const [loadingMessages, setLoadingMessages] = useState(true);
-//     const [messages, setMessages] = useState([]);  //hold the messages
-//     const currentUser = useRecoilValue(userAtom); 
-//     const {socket} = useSocket(); //context hook //socket is an object we need to destructure the socket form SocketContext,jsx we provide value {{socket}}
-//     const setConversations = useSetRecoilState(conversationsAtom);
-
-//     const messageEndRef = useRef(null);//for automatically scroll down when new messages arrive or send
-
-//     useEffect(()=>{
-//         socket.on("newMessage",(message)=>{
-//             if(selectedConversation._id === message.conversationId){
-//                  setMessages((prevMessages)=> [...prevMessages,message])
-//             }
-        
-//             if(!document.hasFocus()) //11:49
-//             {
-//                 const sound = new Audio(messageSound)
-//                 sound.play();
-//             }
-
-//         // now we send the message and also we need to show on lastMessage in bottom on username so that
-//         setConversations((prev)=> {
-//             const updatedConversations = prev.map( conversation => {
-//                 if(conversation._id === message.conversationId){ //find the conversationId
-//                     return {
-//                         ...conversation,
-//                         lastMessage:{
-//                             text: messages.text,
-//                             sender:messages.sender,
-//                         }
-//                     }
-//                 }
-//                 return conversation;
-//             })
-//             return updatedConversations;
-//         })
-
-//         // when user disconnect(unmount) then we remove the newMessage event
-//     })
-//         return ()=> socket.off("newMessage"); 
-
-//     },[socket, selectedConversation, setConversations]);
-
-//     // useEffect for blue tick
-//     useEffect(()=>{
-//         const lastMessageIsFromOtherUser = messages.length && messages[messages.length-1].sender !== currentUser._id
-//         if(lastMessageIsFromOtherUser)
-//         {
-//             socket.emit("markMessagesAsSeen",{
-//                 conversationId: selectedConversation._id,
-//                 userId:selectedConversation.userId
-//             })
-//         }
-
-//         socket.on("messagesSeen",(conversationId)=>{
-//             if(selectedConversation._id === conversationId){
-//                 setMessages( prev => {
-//                     const updateMessages = prev.map(message => {
-//                         if(!message.seen){
-//                             return {
-//                                 ...message,
-//                                 seen:true
-//                             }
-//                         }
-//                         return message
-//                     })
-//                     return updateMessages;
-//                 })
-//             }
-//         })
-
-//     },[socket,currentUser._id,messages,selectedConversation])
-
-//     // whenever the messages state changes we will run this useEffect
-//     //for automatically scroll down when new messages arrive or send
-//     useEffect(()=>{
-
-//         messageEndRef.current?.scrollIntoView({ behavior: "smooth" })
-
-//     },[messages])
-
-
-//     useEffect(()=>{
-//         const getMessages = async()=>{
-//             setLoadingMessages(true);
-//             setMessages([]);
-//             try {
-//                 if(selectedConversation.mock)return;
-//                 const res = await fetch(`/api/messages/${selectedConversation.userId}`)
-//                 const data = await res.json();
-//                 if(data.error)
-//                 {
-//                     showToast("Error",data.error,"error");
-//                 }
-//                 setMessages(data);
-
-//             } catch (error) {
-//                 showToast("Error", error.message,"error");
-//             } finally{
-//                 setLoadingMessages(false);
-//             }
-//         };
-
-
-//         getMessages();
-
-//     },[showToast,selectedConversation.userId,selectedConversation.mock]);
-
-//   return (
-//     <Flex flex={'70'}
-//           bg={useColorModeValue("gray.200","gray.dark")}
-//           borderRadius={'md'}
-//           flexDirection={'column'}
-//           p={2} >
-//             {/* Message header */}
-//         <Flex w={'full'} h={12} alignItems={'center'} gap={2} >
-//             <Avatar  src={selectedConversation.userProfilePic} size={'sm'} />
-//             <Text display={"flex"} alignItems={'center'} >
-//                 {selectedConversation.username} <Image src="/verified.png" w={4} h={4} ml={1}  />
-//             </Text>
-//         </Flex>
-//         <Divider/>
-
-//         <Flex  flexDir={'column'} p={2} gap={4} my={4}
-//                 height={"400px"} overflowY={'auto'}    >
-//                 {loadingMessages && 
-//                     [...Array(5)].map((_, i) =>(
-//                         <Flex key={i}
-//                             gap={2}
-//                             alignItems={'center'}
-//                             p={1}
-//                             borderRadius={'md'}
-//                             alignSelf={i%2===0 ? 'flex-start' : 'flex-end'}
-//                         >
-//                             { i%2 === 0 && <SkeletonCircle size={7} />}
-//                             <Flex flexDir={'column'} gap={2} >
-//                                 <Skeleton h={'8px'} w={'250px'}  />
-//                                 <Skeleton h={'8px'} w={'250px'}  />
-//                                 <Skeleton h={'8px'} w={'250px'}  />
-//                             </Flex>
-//                             {i%2 !==0 && <SkeletonCircle size={7} />}
-//                         </Flex>
-//                     )) } 
-                    
-//                     {!loadingMessages && 
-//                         messages.map((message) => (
-//                         <Flex
-// 							key={message._id}
-// 							direction={"column"}
-// 							ref={messages.length - 1 === messages.indexOf(message) ? messageEndRef : null}
-// 						>
-// 							<Message message={message} ownMessage={currentUser._id === message.sender} />
-// 						</Flex>                     
-//                         ))
-//                     }
-
-//                     </Flex>
-
-//                     <MessageInput setMessages={setMessages}  />
-//     </Flex>
-//   )
-// }
-
-// export default MessageContainer
-
-
-import { Avatar, Divider, Flex, Image, Skeleton, SkeletonCircle, Text, useColorModeValue } from "@chakra-ui/react";
-import Message from "./Message";
-import MessageInput from "./MessageInput";
-import { useEffect, useRef, useState } from "react";
-import useShowToast from "../hooks/useShowToast";
-import { conversationsAtom, selectedConversationAtom } from "../atoms/messagesAtom";
-import { useRecoilValue, useSetRecoilState } from "recoil";
-import userAtom from "../atoms/userAtom";
-import { useSocket } from "../context/SocketContext.jsx";
+import { Avatar, Divider, Flex, Image, Skeleton, SkeletonCircle, Text, useColorModeValue } from "@chakra-ui/react"
+import Message from "./Message"
+import MessageInput from "./MessageInput"
+import { useEffect, useRef, useState } from "react"
+import useShowToast from "../hooks/useShowToast"
+import { conversationsAtom, selectedConversationAtom } from "../atoms/messagesAtom"
+import { useRecoilValue, useSetRecoilState } from "recoil"
+import userAtom from "../atoms/userAtom"
+import { useSocket } from "../context/SocketContext";
 import messageSound from "../assets/sounds/message.mp3";
 
 
 const MessageContainer = () => {
-	const showToast = useShowToast();
-	const selectedConversation = useRecoilValue(selectedConversationAtom);
-	const [loadingMessages, setLoadingMessages] = useState(true);
-	const [messages, setMessages] = useState([]);
-	const currentUser = useRecoilValue(userAtom);
-	const { socket } = useSocket();
-	const setConversations = useSetRecoilState(conversationsAtom);
-	const messageEndRef = useRef(null);
 
-	useEffect(() => {
-		socket.on("newMessage", (message) => {
-			if (selectedConversation._id === message.conversationId) {
-				setMessages((prev) => [...prev, message]);
-			}
+    const showToast = useShowToast();
+    const selectedConversation = useRecoilValue(selectedConversationAtom);
+    const [loadingMessages, setLoadingMessages] = useState(true);
+    const [messages, setMessages] = useState([]);  //hold the messages
+    const currentUser = useRecoilValue(userAtom); 
+    const {socket} = useSocket(); //context hook //socket is an object we need to destructure the socket form SocketContext,jsx we provide value {{socket}}
+    const setConversations = useSetRecoilState(conversationsAtom);
 
-			// make a sound if the window is not focused
-			if (!document.hasFocus()) {
-				const sound = new Audio(messageSound);
-				sound.play();
-			}
+    const messageEndRef = useRef(null);//for automatically scroll down when new messages arrive or send
 
-			setConversations((prev) => {
-				const updatedConversations = prev.map((conversation) => {
-					if (conversation._id === message.conversationId) {
-						return {
-							...conversation,
-							lastMessage: {
-								text: message.text,
-								sender: message.sender,
-							},
-						};
-					}
-					return conversation;
-				});
-				return updatedConversations;
-			});
-		});
+    useEffect(()=>{
+        socket.on("newMessage",(message)=>{
+            if(selectedConversation._id === message.conversationId){
+                 setMessages((prevMessages)=> [...prevMessages,message])
+            }
+        
+            if(!document.hasFocus()) //11:49
+            {
+                const sound = new Audio(messageSound)
+                sound.play();
+            }
 
-		return () => socket.off("newMessage");
-	}, [socket, selectedConversation, setConversations]);
+        // now we send the message and also we need to show on lastMessage in bottom on username so that
+        setConversations((prev)=> {
+            const updatedConversations = prev.map( conversation => {
+                if(conversation._id === message.conversationId){ //find the conversationId
+                    return {
+                        ...conversation,
+                        lastMessage:{
+                            text: messages.text,
+                            sender:messages.sender,
+                        }
+                    }
+                }
+                return conversation;
+            })
+            return updatedConversations;
+        })
 
-	useEffect(() => {
-		const lastMessageIsFromOtherUser = messages.length && messages[messages.length - 1].sender !== currentUser._id;
-		if (lastMessageIsFromOtherUser) {
-			socket.emit("markMessagesAsSeen", {
-				conversationId: selectedConversation._id,
-				userId: selectedConversation.userId,
-			});
-		}
+        // when user disconnect(unmount) then we remove the newMessage event
+    })
+        return ()=> socket.off("newMessage"); 
 
-		socket.on("messagesSeen", ({ conversationId }) => {
-			if (selectedConversation._id === conversationId) {
-				setMessages((prev) => {
-					const updatedMessages = prev.map((message) => {
-						if (!message.seen) {
-							return {
-								...message,
-								seen: true,
-							};
-						}
-						return message;
-					});
-					return updatedMessages;
-				});
-			}
-		});
-	}, [socket, currentUser._id, messages, selectedConversation]);
+    },[socket, selectedConversation, setConversations]);
 
-	useEffect(() => {
-		messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
-	}, [messages]);
+    // useEffect for blue tick
+    useEffect(()=>{
+        const lastMessageIsFromOtherUser = messages.length && messages[messages.length-1].sender !== currentUser._id
+        if(lastMessageIsFromOtherUser)
+        {
+            socket.emit("markMessagesAsSeen",{
+                conversationId: selectedConversation._id,
+                userId:selectedConversation.userId
+            })
+        }
 
-	useEffect(() => {
-		const getMessages = async () => {
-			setLoadingMessages(true);
-			setMessages([]);
-			try {
-				if (selectedConversation.mock) return;
-				const res = await fetch(`/api/messages/${selectedConversation.userId}`);
-				const data = await res.json();
-				if (data.error) {
-					showToast("Error", data.error, "error");
-					return;
-				}
-				setMessages(data);
-			} catch (error) {
-				showToast("Error", error.message, "error");
-			} finally {
-				setLoadingMessages(false);
-			}
-		};
+        socket.on("messagesSeen",(conversationId)=>{
+            if(selectedConversation._id === conversationId){
+                setMessages( prev => {
+                    const updateMessages = prev.map(message => {
+                        if(!message.seen){
+                            return {
+                                ...message,
+                                seen:true
+                            }
+                        }
+                        return message
+                    })
+                    return updateMessages;
+                })
+            }
+        })
 
-		getMessages();
-	}, [showToast, selectedConversation.userId, selectedConversation.mock]);
+    },[socket,currentUser._id,messages,selectedConversation])
 
-	return (
-		<Flex
-			flex='70'
-			bg={useColorModeValue("gray.200", "gray.dark")}
-			borderRadius={"md"}
-			p={2}
-			flexDirection={"column"}
-		>
-			{/* Message header */}
-			<Flex w={"full"} h={12} alignItems={"center"} gap={2}>
-				<Avatar src={selectedConversation.userProfilePic} size={"sm"} />
-				<Text display={"flex"} alignItems={"center"}>
-					{selectedConversation.username} <Image src='/verified.png' w={4} h={4} ml={1} />
-				</Text>
-			</Flex>
+    // whenever the messages state changes we will run this useEffect
+    //for automatically scroll down when new messages arrive or send
+    useEffect(()=>{
 
-			<Divider />
+        messageEndRef.current?.scrollIntoView({ behavior: "smooth" })
 
-			<Flex flexDir={"column"} gap={4} my={4} p={2} height={"400px"} overflowY={"auto"}>
-				{loadingMessages &&
-					[...Array(5)].map((_, i) => (
-						<Flex
-							key={i}
-							gap={2}
-							alignItems={"center"}
-							p={1}
-							borderRadius={"md"}
-							alignSelf={i % 2 === 0 ? "flex-start" : "flex-end"}
-						>
-							{i % 2 === 0 && <SkeletonCircle size={7} />}
-							<Flex flexDir={"column"} gap={2}>
-								<Skeleton h='8px' w='250px' />
-								<Skeleton h='8px' w='250px' />
-								<Skeleton h='8px' w='250px' />
-							</Flex>
-							{i % 2 !== 0 && <SkeletonCircle size={7} />}
-						</Flex>
-					))}
+    },[messages])
 
-				{!loadingMessages &&
-					messages.map((message) => (
-						<Flex
+
+    useEffect(()=>{
+        const getMessages = async()=>{
+            setLoadingMessages(true);
+            setMessages([]);
+            try {
+                if(selectedConversation.mock)return;
+                const res = await fetch(`/api/messages/${selectedConversation.userId}`)
+                const data = await res.json();
+                if(data.error)
+                {
+                    showToast("Error",data.error,"error");
+                }
+                setMessages(data);
+
+            } catch (error) {
+                showToast("Error", error.message,"error");
+            } finally{
+                setLoadingMessages(false);
+            }
+        };
+
+
+        getMessages();
+
+    },[showToast,selectedConversation.userId,selectedConversation.mock]);
+
+  return (
+    <Flex flex={'70'}
+          bg={useColorModeValue("gray.200","gray.dark")}
+          borderRadius={'md'}
+          flexDirection={'column'}
+          p={2} >
+            {/* Message header */}
+        <Flex w={'full'} h={12} alignItems={'center'} gap={2} >
+            <Avatar  src={selectedConversation.userProfilePic} size={'sm'} />
+            <Text display={"flex"} alignItems={'center'} >
+                {selectedConversation.username} <Image src="/verified.png" w={4} h={4} ml={1}  />
+            </Text>
+        </Flex>
+        <Divider/>
+
+        <Flex  flexDir={'column'} p={2} gap={4} my={4}
+                height={"400px"} overflowY={'auto'}    >
+                {loadingMessages && 
+                    [...Array(5)].map((_, i) =>(
+                        <Flex key={i}
+                            gap={2}
+                            alignItems={'center'}
+                            p={1}
+                            borderRadius={'md'}
+                            alignSelf={i%2===0 ? 'flex-start' : 'flex-end'}
+                        >
+                            { i%2 === 0 && <SkeletonCircle size={7} />}
+                            <Flex flexDir={'column'} gap={2} >
+                                <Skeleton h={'8px'} w={'250px'}  />
+                                <Skeleton h={'8px'} w={'250px'}  />
+                                <Skeleton h={'8px'} w={'250px'}  />
+                            </Flex>
+                            {i%2 !==0 && <SkeletonCircle size={7} />}
+                        </Flex>
+                    )) } 
+                    
+                    {!loadingMessages && 
+                        messages.map((message) => (
+                        <Flex
 							key={message._id}
 							direction={"column"}
 							ref={messages.length - 1 === messages.indexOf(message) ? messageEndRef : null}
 						>
 							<Message message={message} ownMessage={currentUser._id === message.sender} />
-						</Flex>
-					))}
-			</Flex>
+						</Flex>                     
+                        ))
+                    }
 
-			<MessageInput setMessages={setMessages} />
-		</Flex>
-	);
-};
+                    </Flex>
 
-export default MessageContainer;
+                    <MessageInput setMessages={setMessages}  />
+    </Flex>
+  )
+}
+
+export default MessageContainer
+
