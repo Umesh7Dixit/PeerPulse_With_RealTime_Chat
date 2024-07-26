@@ -6,13 +6,10 @@ import io from 'socket.io-client';
 
 const SocketContext = createContext();
 
-// create a hook inorder to get data from anywhere the app
-export const useSocket = ()=>{ //when we want to use value i.e socket then we call useSocket hook
+export const useSocket = ()=>{
     return useContext(SocketContext);
 }
 
-//  This defines a context provider component
-//  that will wrap other components to provide socket functionality.
 export const SocketContextProvider = ({children}) => {
     const [socket , setSocket] = useState(null);
     const [onlineUsers, setOnlineUsers] = useState([]);
@@ -20,22 +17,20 @@ export const SocketContextProvider = ({children}) => {
 
     useEffect(()=>{
         
-        const socket = io("http://localhost:5000",{  //Establishes a Socket.IO connection to "http://localhost:5000"
+        const socket = io("http://localhost:5000",{
             query:{
-                userId: user?._id //Passes the user's ID as a query parameter
+                userId: user?._id
             },
         });
 
-        setSocket(socket);  //Updates the socket state
+        setSocket(socket);
 
         socket.on("getOnlineUsers", (users)=>{
-            setOnlineUsers(users);//it shows the online users coming from hashmap form server(socket,js)
+            setOnlineUsers(users);
         });
 
 
-        return ()=> socket && socket.close();//for disconnectin
-        //  Closes the socket connection when the component unmounts
-        //  or when dependencies change
+        return ()=> socket && socket.close();
 
     },[user?._id,]); 
 
