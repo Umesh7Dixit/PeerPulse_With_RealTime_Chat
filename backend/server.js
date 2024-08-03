@@ -8,6 +8,8 @@ import messageRoutes from "./routes/messageRoutes.js";
 import cookieParser from 'cookie-parser';
 import { v2 as cloudinary } from "cloudinary";
 import {app, server} from "./socket/socket.js"
+import cors from 'cors';
+
 
 dotenv.config();   //to be able to read the content of .env file 
 connectDB(); 
@@ -24,6 +26,15 @@ cloudinary.config({
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
  });
+
+app.use(cors({
+    origin: ['*'],
+    // origin: ['*','http://localhost:3000', 'https://peerpulse-with-realtime-chat.onrender.com'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+
 
 
 
