@@ -27,7 +27,9 @@ export default function UpdateProfilePage() {
 	});
 	const fileRef = useRef(null);
 	const [updating, setUpdating] = useState(false);
+
 	const showToast = useShowToast();
+
 	const { handleImageChange, imgUrl } = usePreviewImg();
 
 	const handleSubmit = async (e) => {
